@@ -1,10 +1,10 @@
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Preload, useGLTF } from "@react-three/drei";
 
 import CanvasLoader from "../Loader";
 
-const Computers = () => {
+const Computers = ({ isMobile }) => {
   const { scene } = useGLTF('./desktop_pc/scene.gltf');
 
   return (
@@ -21,17 +21,35 @@ const Computers = () => {
       />
       <primitive 
         object={scene}
-        scale={0.75}
-        position={[0, -3.25, -1.5]}
+        scale={isMobile ? 0.5 : 0.75}
+        position={isMobile ? [0, -3, 0] : [0, -3.25, 0]}
       />
     </>
   );
 };
 
 const ComputersCanvas = () => {
+
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(max-width: 1000px)');
+
+    setIsMobile(mediaQuery.matches);
+    const handleMediaQueryChange = (event) => {
+      setIsMobile(event.matches);
+    }
+
+    mediaQuery.addEventListener('change', handleMediaQueryChange);
+
+    return () => {
+      mediaQuery.removeEventListener('change',handleMediaQueryChange);
+    }
+  }, [] )
+
   return (
     <Canvas
-      frameLoop="demand"
+      frameloop="demand"
       shadows
       camera={{ position: [20, 3, 5], fov: 25 }}
       gl={{ preserveDrawingBuffer: true }}>
@@ -40,7 +58,7 @@ const ComputersCanvas = () => {
           enableZoom={false}
           maxPolarAngle={Math.PI / 2}
           minPolarAngle={Math.PI / 2} />
-        <Computers />
+        <Computers isMobile={isMobile} />
       </Suspense>
     </Canvas>
   );
